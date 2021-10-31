@@ -17,15 +17,9 @@ namespace Epam.SoftwearDevelopment.Task1
             list.Add(new KeyValuePair<int, int>(5, 4));
             Console.WriteLine(list.Count);
             list.Remove(new KeyValuePair<int, int>(5, 4));
-            list.Add(new KeyValuePair<int, int>(5, 7));
-            list.Add(new KeyValuePair<int, int>(5, 8));
             var flag = list.Contains(new KeyValuePair<int, int>(5, 8));
             Console.WriteLine(list.Count);
             Console.WriteLine(flag);
-            foreach (var item in list)
-            {
-                Console.WriteLine($"{item.Key} {item.Value}");
-            }
         }
     }
 }

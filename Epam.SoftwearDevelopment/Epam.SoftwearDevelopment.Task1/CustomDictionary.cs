@@ -37,8 +37,9 @@ namespace Epam.SoftwearDevelopment.Task1
 
         public List<TKey> Keys => _listOfelem.Where(x => x != null).Select(x => x.First.Value.Key).ToList();
 
-        public List<TValue> Values {
-            get 
+        public List<TValue> Values
+        {
+            get
             {
                 var list = new List<TValue>();
                 for (int i = 0; i < _count; i++)
@@ -78,9 +79,9 @@ namespace Epam.SoftwearDevelopment.Task1
                 Array.Resize(ref _listOfelem, _capacity);
             }
 
-            _count++;
             _listOfelem[_count] = new LinkedList<KeyValuePair<TKey, TValue>>();
             _listOfelem[_count].AddLast(item);
+            _count++;
         }
 
         public void Clear()
@@ -97,7 +98,7 @@ namespace Epam.SoftwearDevelopment.Task1
                 throw new ArgumentNullException($"Empty key {item.Key}");
             }
 
-            if (!_listOfelem.Any(x => x.Contains(item)))
+            if (!_listOfelem.Where(x => x != null).Any(x => x.Contains(item)))
             {
                 return false;
             }
