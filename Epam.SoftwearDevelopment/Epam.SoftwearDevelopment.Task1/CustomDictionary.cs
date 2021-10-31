@@ -7,13 +7,13 @@ namespace Epam.SoftwearDevelopment.Task1
 {
     public class CustomDictionary<TKey, TValue> : ICollection<KeyValuePair<TKey, TValue>>, IEnumerable<KeyValuePair<TKey, TValue>>, IEnumerable
     {
-        private List<TKey> _keysList = null;
-        private List<LinkedList<TValue>> _valuesList = null;
+        private int _capacity = 4;
+        private int _count = 0;
+        private LinkedList<KeyValuePair<TKey, TValue>>[] _listOfelem;
 
         public CustomDictionary()
         {
-            _keysList = new List<TKey>();
-            _valuesList = new List<LinkedList<TValue>>();
+            _listOfelem = new LinkedList<KeyValuePair<TKey, TValue>>[_capacity];
         }
 
         public CustomDictionary(IEqualityComparer<TKey> comparer)
@@ -23,73 +23,72 @@ namespace Epam.SoftwearDevelopment.Task1
 
         public CustomDictionary(CustomDictionary<TKey, TValue> customDictionary)
         {
-            _keysList.AddRange(customDictionary.Keys);
-            _valuesList.AddRange(customDictionary.Values);
+            _listOfelem = new LinkedList<KeyValuePair<TKey, TValue>>[_capacity];
+            foreach (var item in customDictionary)
+            {
+                Add(item);
+            }
         }
 
-        public List<TKey> Keys { get; }
-
-        public List<LinkedList<TValue>> Values { get; }
-
-        public TValue this[TKey key]
+        public CustomDictionary(int capacity)
         {
-            get
+            _capacity = capacity;
+        }
+
+        public List<TKey> Keys => _listOfelem.Where(x => x != null).Select(x => x.First.Value.Key).ToList();
+
+        public List<TValue> Values {
+            get 
             {
-                if (key == null)
+                var list = new List<TValue>();
+                for (int i = 0; i < _count; i++)
                 {
-                    throw new ArgumentNullException($"Empty key {key}");
+                    foreach (var item in _listOfelem[i])
+                    {
+                        list.Add(item.Value);
+                    }
                 }
 
-                int ind = _keysList.IndexOf(key);
-                if (ind == -1)
-                {
-                    throw new KeyNotFoundException($"Key {key} not found");
-                }
-
-                return _valuesList[ind].LastOrDefault();
-            }
-            set
-            {
-                if (key == null)
-                {
-                    throw new ArgumentNullException($"Empty key {key}");
-                }
-
-                int ind = _keysList.IndexOf(key);
-                if (ind == -1)
-                {
-                    throw new KeyNotFoundException($"Key {key} not found");
-                }
-
-                _valuesList[ind].AddLast(value);
+                return list;
             }
         }
 
         public IEqualityComparer<TKey> Comparer { get; }
 
-        public int Count => _keysList.Count;
+        public int Count => _count;
+
+        public int Capacity => _capacity;
 
         public bool IsReadOnly => false;
 
         public void Add(KeyValuePair<TKey, TValue> item)
         {
-            int ind = _keysList.IndexOf(item.Key);
-            if (ind != -1)
+            int lenght = Count;
+            for (int i = 0; i < lenght; i++)
             {
-                _valuesList[ind].AddLast(item.Value);
+                if (_listOfelem[i].Any(x => x.Key.Equals(item.Key)))
+                {
+                    _listOfelem[i].AddLast(item);
+                    return;
+                }
             }
-            else
+
+            if (_capacity == lenght)
             {
-                _keysList.Add(item.Key);
-                _valuesList.Add(new LinkedList<TValue>());
-                _valuesList[Count - 1].AddLast(item.Value);
+                _capacity *= 2;
+                Array.Resize(ref _listOfelem, _capacity);
             }
+
+            _count++;
+            _listOfelem[lenght] = new LinkedList<KeyValuePair<TKey, TValue>>();
+            _listOfelem[lenght].AddLast(item);
         }
 
         public void Clear()
         {
-            _keysList.Clear();
-            _valuesList.Clear();
+            _capacity = 4;
+            _count = 0;
+            _listOfelem = new LinkedList<KeyValuePair<TKey, TValue>>[_capacity];
         }
 
         public bool Contains(KeyValuePair<TKey, TValue> item)
@@ -99,30 +98,34 @@ namespace Epam.SoftwearDevelopment.Task1
                 throw new ArgumentNullException($"Empty key {item.Key}");
             }
 
-            int ind = _keysList.IndexOf(item.Key);
-            if (ind == -1)
+            if (!_listOfelem.Any(x => x.Contains(item)))
             {
                 return false;
             }
 
-            if (_valuesList[ind].Contains(item.Value))
-            {
-                return true;
-            }
-
-            return false;
+            return true;
         }
 
         public void CopyTo(KeyValuePair<TKey, TValue>[] array, int arrayIndex)
         {
-            throw new NotImplementedException();
+            Clear();
+            for (int i = 0; i < array.Length; i++)
+            {
+                Add(array[i]);
+            }
         }
 
         public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator()
         {
-            for (int i = 0; i < _keysList.Count; i++)
+            foreach (var item in _listOfelem)
             {
-                yield return new KeyValuePair<TKey, TValue>(_keysList[i], _valuesList[i].Last());
+                if (item != null)
+                {
+                    foreach (var item2 in item)
+                    {
+                        yield return item2;
+                    }
+                }
             }
         }
 
@@ -133,25 +136,28 @@ namespace Epam.SoftwearDevelopment.Task1
                 throw new ArgumentNullException($"Empty key {item.Key}");
             }
 
-            int ind = _keysList.IndexOf(item.Key);
-            if (ind == -1)
+            int ind = -1;
+            for (int i = 0; i < _count; i++)
             {
-                throw new KeyNotFoundException($"Key {item.Key} not found");
+                if (_listOfelem[i].Contains(item))
+                {
+                    ind = i;
+                    break;
+                }
             }
 
-            if (!_valuesList[ind].Contains(item.Value))
+            if (ind == -1)
             {
                 throw new ArgumentException($"Value {item.Value} not found");
             }
 
-            _valuesList[ind].Remove(item.Value);
-            if (_valuesList[ind].Count == 0)
+            _listOfelem[ind].Remove(item);
+            if (_listOfelem[ind].Count == 0)
             {
-                _keysList.Remove(item.Key);
+                _count--;
             }
 
             return true;
-
         }
 
         IEnumerator IEnumerable.GetEnumerator()
