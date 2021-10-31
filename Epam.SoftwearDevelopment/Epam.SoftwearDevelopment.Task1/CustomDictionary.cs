@@ -63,8 +63,7 @@ namespace Epam.SoftwearDevelopment.Task1
 
         public void Add(KeyValuePair<TKey, TValue> item)
         {
-            int lenght = Count;
-            for (int i = 0; i < lenght; i++)
+            for (int i = 0; i < _count; i++)
             {
                 if (_listOfelem[i].Any(x => x.Key.Equals(item.Key)))
                 {
@@ -73,15 +72,15 @@ namespace Epam.SoftwearDevelopment.Task1
                 }
             }
 
-            if (_capacity == lenght)
+            if (_capacity == _count)
             {
                 _capacity *= 2;
                 Array.Resize(ref _listOfelem, _capacity);
             }
 
             _count++;
-            _listOfelem[lenght] = new LinkedList<KeyValuePair<TKey, TValue>>();
-            _listOfelem[lenght].AddLast(item);
+            _listOfelem[_count] = new LinkedList<KeyValuePair<TKey, TValue>>();
+            _listOfelem[_count].AddLast(item);
         }
 
         public void Clear()
