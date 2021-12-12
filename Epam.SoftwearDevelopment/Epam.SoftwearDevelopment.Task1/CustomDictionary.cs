@@ -136,22 +136,25 @@ namespace Epam.SoftwearDevelopment.Task1
 
             _listOfelem[index].AddLast(item);
 
-            if (_listOfelem.All(x => x != null))
+            if (_listOfelem.Any(x => x?.Count > _listOfelem.Length / 3))
             {
                 var lenght = _listOfelem.Length * 2;
                 var newList = new LinkedList<KeyValuePair<TKey, TValue>>[lenght];
                 for (int i = 0; i < _listOfelem.Length; i++)
                 {
-                    foreach (var elem in _listOfelem[i])
+                    if (_listOfelem[i] != null)
                     {
-                        var hashOfElem = elem.Key.GetHashCode();
-                        var ind = hashOfElem % lenght;
-                        if (newList[ind] is null)
+                        foreach (var elem in _listOfelem[i])
                         {
-                            newList[ind] = new LinkedList<KeyValuePair<TKey, TValue>>();
-                        }
+                            var hashOfElem = elem.Key.GetHashCode();
+                            var ind = hashOfElem % lenght;
+                            if (newList[ind] is null)
+                            {
+                                newList[ind] = new LinkedList<KeyValuePair<TKey, TValue>>();
+                            }
 
-                        newList[ind].AddLast(elem);
+                            newList[ind].AddLast(elem);
+                        }
                     }
                 }
 
@@ -238,7 +241,7 @@ namespace Epam.SoftwearDevelopment.Task1
             var index = Math.Abs(hash % _listOfelem.Length);
             if (_listOfelem[index] is null || !_listOfelem[index].Any(x => x.Equals(item)))
             {
-                throw new ArgumentException("Incorrect pair");
+                return false;
             }
 
             _listOfelem[index].Remove(item);
@@ -258,7 +261,7 @@ namespace Epam.SoftwearDevelopment.Task1
             var elem = _listOfelem[index]?.FirstOrDefault(x => x.Key.Equals(key));
             if (!elem.HasValue)
             {
-                throw new ArgumentException("Incorrect key");
+                return false;
             }
 
             _listOfelem[index].Remove(elem.Value);
